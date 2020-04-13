@@ -36,6 +36,7 @@ class TestServer {
 
     async setupApi() {
         this._api = new Koa();
+        this._logTransports = await this._createLogTransports();
         this._logger = await this._createLogger();
 
         this._cache = await this._createCache();
@@ -83,26 +84,32 @@ class TestServer {
         console.log('api shut down complete');
     }
 
+    async _createLogTransports() {
+        return Promise.all(
+            Object.entries(this._conf.log.transports)
+                .filter(([, conf]) => conf && conf !== 'false') // truthy or !'false'
+                .map(([name, conf]) => Transports[name](conf))
+        );
+    }
+
     async _createLogger() {
-        const transports = await Promise.all([Transports.consoleDir()]);
         // Set up a logger for each running server
         return new Logger({
             context: {
                 app: 'mojaloop-sdk-test-api'
             },
             space: this._conf.logIndent,
-            transports,
+            transports: this._logTransports,
         });
     }
 
     async _createCache() {
-        const transports = await Promise.all([Transports.consoleDir()]);
         const logger = new Logger({
             context: {
                 app: 'mojaloop-sdk-inboundCache'
             },
             space: this._conf.logIndent,
-            transports,
+            transports: this._logTransports,
         });
 
         const cacheConfig = {

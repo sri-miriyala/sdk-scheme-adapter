@@ -46,6 +46,7 @@ class OAuthTestServer {
 
     async setupApi() {
         this._api = new Koa();
+        this._logTransports = await this._createLogTransports();
         this._logger = await this._createLogger();
 
         this._api.oauth = new OAuthServer({
@@ -62,16 +63,22 @@ class OAuthTestServer {
             await next();
         });
     }
+    async _createLogTransports() {
+        return Promise.all(
+            Object.entries(this._conf.log.transports)
+                .filter(([, conf]) => conf && conf !== 'false') // truthy or !'false'
+                .map(([name, conf]) => Transports[name](conf))
+        );
+    }
 
     async _createLogger() {
-        const transports = await Promise.all([Transports.consoleDir()]);
         // Set up a logger for each running server
         return new Logger({
             context: {
                 app: 'mojaloop-sdk-oauth-test-server'
             },
             space: this._conf.logIndent,
-            transports,
+            transports: this._logTransports,
         });
     }
 }

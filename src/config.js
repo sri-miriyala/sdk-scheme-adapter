@@ -115,7 +115,15 @@ module.exports = {
 
     requestProcessingTimeoutSeconds: env.get('REQUEST_PROCESSING_TIMEOUT_SECONDS').default('30').asIntPositive(),
 
-    logIndent: env.get('LOG_INDENT').default('2').asIntPositive(),
+    log: {
+        transports: {
+            sqlite: env.get('LOG_TRANSPORT_SQLITE_PATH').default('').asString(),
+            file: env.get('LOG_TRANSPORT_FILE_PATH').default('').asString(),
+            consoleDir: env.get('LOG_TRANSPORT_CONSOLE_DIR').default('false').asBool(),
+            stdout: env.get('LOG_TRANSPORT_STDOUT').default('false').asBool(),
+        },
+        indent: env.get('LOG_INDENT').default('2').asIntPositive(),
+    },
 
     allowTransferWithoutQuote: env.get('allowTransferWithoutQuote').default('false').asBool(),
 

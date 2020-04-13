@@ -61,5 +61,8 @@
   "rejectExpiredQuoteResponses": false,
   "rejectExpiredTransferFulfils": false,
   "rejectTransfersOnExpiredQuotes": false,
-  "logIndent": 2
+  "log": {
+    "transports": {},
+    "indent": 2
+  }
 }

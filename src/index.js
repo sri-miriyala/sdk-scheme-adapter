@@ -45,7 +45,7 @@ class Server {
             clientKey: this.conf.oauthTestServer.clientKey,
             clientSecret: this.conf.oauthTestServer.clientSecret,
             port: this.conf.oauthTestServer.listenPort,
-            logIndent: this.conf.logIndent,
+            log: this.conf.log,
         });
         this.testServer = new TestServer(this.conf);
 
