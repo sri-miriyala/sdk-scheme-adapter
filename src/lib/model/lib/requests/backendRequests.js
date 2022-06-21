@@ -147,6 +147,22 @@ class BackendRequests {
         return this._put(url, notifcation);
     }
 
+        /**
+     * Executes a PUT /bulkTransfers/{bulkTransferId} request to ask for confirmation of party or quote
+     *
+     * @returns {object} - JSON response body if one was received
+     */
+
+    async putBulkTransfersNotification(notifcation, bulkTransferId) {
+        console.log('===============putBulkTransfersNotification====================');
+        console.log(JSON.stringify(notifcation));
+        console.log(bulkTransferId);
+        console.log('===================================');
+            
+        const url = `bulkTransfers/${bulkTransferId}`;
+        return this._put(url, notifcation);
+    }
+    
     /**
      * Utility function for building outgoing request headers as required by the mojaloop api spec
      *

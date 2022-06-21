@@ -1656,9 +1656,9 @@ components:
         #   type: boolean
         note:
           $ref: '#/components/schemas/Note'
-        quoteRequestExtensions:
+        quoteExtensions:
           $ref: '#/components/schemas/ExtensionList'
-        transferRequestExtensions:
+        transferExtensions:
           $ref: '#/components/schemas/ExtensionList'
         lastError:
           description: >

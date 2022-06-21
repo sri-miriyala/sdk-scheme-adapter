@@ -196,30 +196,70 @@ const putTransfers = async (ctx) => {
 /**
  * Handler for outbound bulk transfer request
  */
-const postBulkTransfers = async (ctx) => {
+ const postBulkTransfers = async (ctx) => {
     try {
         // this requires a multi-stage sequence with the switch.
         let bulkTransferRequest = {
             ...ctx.request.body
         };
 
+        // TODO: Validate the request
+
+        // Accept the request and send back 202
+        ctx.response.status = 202;
+        // ctx.response.body = response;
+
+        // Since this is an asynchronous API, We need to accept the request immediately
+        // and then keep working on it in background
+        (async function() {
+
+            // use the bulk transfers model to execute asynchronous stages with the switch
+            const model = new OutboundBulkTransfersModel({
+                ...ctx.state.conf,
+                cache: ctx.state.cache,
+                logger: ctx.state.logger,
+                wso2: ctx.state.wso2,
+                metricsClient: ctx.state.metricsClient,
+            });
+
+            await model.initialize(bulkTransferRequest);
+            await model.run();
+       })();
+    }
+    catch (err) {
+        return handleBulkTransferError('postBulkTransfers', err, ctx);
+    }
+};
+
+/**
+ * Handler for resuming outbound bulk transfers in scenarios where two-step transfers are enabled
+ * by disabling the autoAcceptParty or autoAcceptQuote
+ */
+ const putBulkTransfers = async (ctx) => {
+    try {
+
+        ctx.response.status = 202;
+
+        // this requires a multi-stage sequence with the switch.
         // use the bulk transfers model to execute asynchronous stages with the switch
         const model = new OutboundBulkTransfersModel({
             ...ctx.state.conf,
             cache: ctx.state.cache,
             logger: ctx.state.logger,
             wso2: ctx.state.wso2,
+            metricsClient: ctx.state.metricsClient,
         });
 
-        await model.initialize(bulkTransferRequest);
-        const response = await model.run();
+        // TODO: check the incoming body to reject party or quote when requested to do so
 
-        // return the result
-        ctx.response.status = 200;
-        ctx.response.body = response;
+        // load the transfer model from cache and start it running again
+        await model.load(ctx.state.path.params.bulkTransferId);
+
+        await model.run(ctx.request.body);
+
     }
-    catch (err) {
-        return handleBulkTransferError('postBulkTransfers', err, ctx);
+    catch(err) {
+        return handleTransferError('putTransfers', err, ctx);
     }
 };
 
@@ -553,6 +593,7 @@ module.exports = {
     },
     '/bulkTransfers/{bulkTransferId}': {
         get: getBulkTransfers,
+        put: putBulkTransfers,
     },
     '/bulkQuotes': {
         post: postBulkQuotes,
