@@ -26,7 +26,7 @@
   */
  class OutboundBulkTransfersModel {
      constructor(config) {
- console.log(config)
+
          this._cache = config.cache;
          this._logger = config.logger;
          this._requestProcessingTimeoutSeconds = config.requestProcessingTimeoutSeconds;
@@ -261,9 +261,6 @@
                     subId: individualTransfer.to.partyIdInfo.partySubIdOrType
                 });
 
-                 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-                 console.log(payeeKey);
-                 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
                  let latencyTimerDone;
  
                  // hook up a subscriber to handle response messages
@@ -276,7 +273,7 @@
  
                          // this.data.getPartiesResponse = JSON.parse(msg);
                          const response = JSON.parse(msg);
-                         console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+
                          if(response.body && response.body.errorInformation) {
                              // this is an error response to our GET /parties request
                              const err = new BackendError(`Got an error response resolving party: ${util.inspect(response.body, { depth: Infinity })}`, 503);
@@ -292,9 +289,6 @@
  
                          let payee = response.body;
  
-                         console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-                         console.log(payee);
-                         console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
                          if(!payee.party) {
                              // we should never get a non-error response without a party, but just in case...
                              // cancel the timeout handler
@@ -991,11 +985,6 @@
                  resp.currentState = TransferStateEnum.ERROR_OCCURRED;
                  break;
          }
-        //  console.log('-------------IINSIDE getResponse----------------');
-        //  console.log(this.data)
-        //  console.log(this.data.currentState)
-        //  console.log(resp);
-        //  console.log('----------------------------------------')
          return resp;
      }
  
@@ -1076,9 +1065,7 @@
                          break;
                      }
  
-                     console.log('########################################1111111111')
                      await this.stateMachine.resolveBulkPayees();
-                     console.log('########################################22222222222')
                      this._logger.log(`Payee resolved for transfer ${this.data.bulkTransferId}`);
                      if(this.stateMachine.state === 'bulkPayeesResolved' && !this.data.options.autoAcceptParty.enabled) {
                          //we break execution here and return the resolved party details to allow asynchronous accept or reject
@@ -1087,7 +1074,7 @@
                          // return this.getResponse();
  
                          const response =  this.getResponse();
-                        //  return response;
+                        //  send the request back to payer for confirmation 
                          await this._sendConfirmationRequest(response)
                      }
                      break;
@@ -1102,7 +1089,7 @@
  
                      // next transition is to requestBulkQuote
                      await this.stateMachine.requestBulkQuote();
-                     this._logger.log(`Quote received for transfer ${this.data.transferId}`);
+                     this._logger.log(`Quote received for transfer ${this.data.bulkTransferId}`);
                      if(this.stateMachine.state === 'bulkQuoteReceived' && !this._autoAcceptQuotes) {
                          //we break execution here and return the quote response details to allow asynchronous accept or reject
                          //of the quote
