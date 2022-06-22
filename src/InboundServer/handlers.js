@@ -406,10 +406,32 @@ const putParticipantsByTypeAndIdError = async(ctx) => {
  * request.
  */
 const putPartiesByTypeAndId = async (ctx) => {
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
     const idType = ctx.state.path.params.Type;
     const idValue = ctx.state.path.params.ID;
     const idSubValue = ctx.state.path.params.SubId;
 
+    const err = {
+        "errorInformation": {
+          "errorCode": "3085",
+          "errorDescription": "string",
+          "extensionList": {
+            "extension": [
+              {
+                "key": "string",
+                "value": "string"
+              }
+            ]
+          }
+        }
+      }
     // publish an event onto the cache for subscribers to finish the action
     await PartiesModel.triggerDeferredJob({
         cache: ctx.state.cache,
@@ -426,6 +448,40 @@ const putPartiesByTypeAndId = async (ctx) => {
 
     ctx.response.status = 200;
 };
+
+
+// const putPartiesByTypeAndId = async (ctx) => {
+//     const idType = ctx.state.path.params.Type;
+//     const idValue = ctx.state.path.params.ID;
+//     const idSubValue = ctx.state.path.params.SubId;
+
+//     // // publish an event onto the cache for subscribers to action
+//     // const cacheId = PartiesModel.channelName(idType, idValue, idSubValue);
+//     // const value = {
+//     //     headers: ctx.request.headers,
+//     //     body: ctx.request.body
+//     // };
+//     // if (ctx.state.conf.multiplePartiesResponse) {
+//     //     await ctx.state.cache.add(cacheId, value);
+//     // } else {
+//     //     await ctx.state.cache.publish(cacheId, value);
+//     // }
+
+//     // publish an event onto the cache for subscribers to action
+//     await PartiesModel.triggerDeferredJob({
+//         cache: ctx.state.cache,
+//         type: idType,
+//         id: idValue,
+//         subId: idSubValue,
+//         message: {
+//             headers: ctx.request.headers,
+//             body: ctx.request.body
+//         }
+//     });
+
+//     ctx.response.status = 200;
+//     ctx.response.body = '';
+// };
 
 /**
  * Handles a PUT /quotes/{ID}. This is a response to a POST /quotes request
@@ -603,6 +659,17 @@ const patchTransfersById = async (ctx) => {
  * Handles a PUT /parties/{Type}/{ID}/error request. This is an error response to a GET /parties/{Type}/{ID} request
  */
 const putPartiesByTypeAndIdError = async(ctx) => {
+
+    console.log('????????????????????????????????????????????????????');
+    console.log('????????????????????????????????????????????????????');
+    console.log('????????????????????????????????????????????????????');
+    console.log('????????????????????????????????????????????????????');
+    console.log('????????????????????????????????????????????????????');
+    console.log('?@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+
+
     const idType = ctx.state.path.params.Type;
     const idValue = ctx.state.path.params.ID;
     const idSubValue = ctx.state.path.params.SubId;

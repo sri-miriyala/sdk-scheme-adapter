@@ -243,7 +243,13 @@
                  throw new Error(`Unhandled state transition for transfer ${this.data.transferId}: ${util.inspect(args)}`);
          }
      }
- 
+
+     updateIndividualTransfer(transactionId, subset) {
+        const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === transactionId);
+        // this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: errResponse};
+        this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], ...subset};
+
+     }
  
      /**
       * Resolves the payee.
@@ -254,6 +260,24 @@
          // eslint-disable-next-line no-async-promise-executor
          const getPartiesPromises = this.data.individualTransfers.map((individualTransfer) => {
              return new Promise(async (resolve, reject) => {
+
+                const now = new Date().toISOString();
+                if (now > this.data.bulkExpiration) {
+                    const err = new Errors.MojaloopFSPIOPError(null, `Bulk Transfer Expired ${this.data.bulkTransferId}`, null,
+                    Errors.MojaloopApiErrorCodes.SERVER_TIMED_OUT);
+                    //  const err = new BackendError(`Timeout resolving payee for transfer ${individualTransfer.transactionId}`, 504);
+                     const errResponse = {
+                        'httpStatusCode': 503,
+                        'mojaloopError': err.toApiErrorObject()
+                     };
+                     this.updateIndividualTransfer(individualTransfer.transactionId, {lastError: errResponse})
+                    //  const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
+                    //  this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: errResponse};
+
+
+                    this._logger.error(`${msg}: system time=${now} > expiration time=${quote.expiration}`);
+                }
+
                  // listen for resolution events on the payee idType and idValue
                  const payeeKey = PartiesModel.channelName({
                     type: individualTransfer.to.partyIdInfo.partyIdType,
@@ -279,9 +303,10 @@
                              const err = new BackendError(`Got an error response resolving party: ${util.inspect(response.body, { depth: Infinity })}`, 503);
                              err.mojaloopError = response.body;
 
-                             const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
-                             this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: err};
-        
+                            //  const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
+                            //  this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: err};
+                             this.updateIndividualTransfer(individualTransfer.transactionId, {lastError: err})
+
                              // cancel the timeout handler
                              clearTimeout(timeout);
                              return reject(err);
@@ -332,9 +357,10 @@
                          }
  
                          // now we got the payee, add the details to our data so we can use it
-                         const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
-                         this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], to: payee};
- 
+                        //  const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
+                        //  this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], to: payee};
+                         this.updateIndividualTransfer(individualTransfer.transactionId, {to: payee})
+
                          return resolve(payee);
                      }
                      catch(err) {
@@ -351,8 +377,9 @@
                         'httpStatusCode': 503,
                         'mojaloopError': err.toApiErrorObject()
                      };
-                     const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
-                     this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: errResponse};
+                    //  const itemIndex = this.data.individualTransfers.findIndex(x => x.transactionId === individualTransfer.transactionId);
+                    //  this.data.individualTransfers[itemIndex] = {...this.data.individualTransfers[itemIndex], lastError: errResponse};
+                     this.updateIndividualTransfer(individualTransfer.transactionId, {lastError: errResponse})
 
                      // we dont really care if the unsubscribe fails but we should log it regardless
                      this._cache.unsubscribe(payeeKey, subId).catch(e => {
@@ -961,7 +988,7 @@
  
          switch(this.data.currentState) {
              case 'bulkPayeesResolved':
-                 resp.currentState = TransferStateEnum.WAITING_FOR_PARTY_ACEPTANCE;
+                 resp.currentState = TransferStateEnum.WAITING_FOR_PARTY_ACCEPTANCE;
                  break;
  
              case 'bulkQuoteReceived':
@@ -985,6 +1012,9 @@
                  resp.currentState = TransferStateEnum.ERROR_OCCURRED;
                  break;
          }
+        //  console.log('########################################');
+        //  console.log(resp);
+        //  console.log('########################################');
          return resp;
      }
  
