@@ -18,52 +18,63 @@
  * Gates Foundation
  - Name Surname <name.surname@gatesfoundation.com>
  * Modusbox
- - Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>
+ - Vijay Kumar Guthi <vijaya.guthi@modusbox.com>
  --------------
  ******/
 
 'use strict';
 
-import { CommandEvent } from '../command_event';
+import { CommandEventMessage } from '../command_event_message';
 import { IMessageHeader } from '@mojaloop/platform-shared-lib-messaging-types-lib';
 import { SDKSchemeAdapter } from '@mojaloop/api-snippets';
 
-export interface IProcessPartyInfoCallbackCmdEvtData {
+export interface IProcessBulkQuotesCallbackMessageData {
     key: string;
-    partyResult: SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse;
+    content: {
+        batchId: string;
+        bulkQuoteId: string;
+        bulkQuotesResult: SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkQuoteResponse;
+    };
     timestamp: number | null;
     headers: IMessageHeader[] | null;
 }
 
-export class ProcessPartyInfoCallbackCmdEvt extends CommandEvent {
-    constructor(data: IProcessPartyInfoCallbackCmdEvtData) {
+export class ProcessBulkQuotesCallbackMessage extends CommandEventMessage {
+    constructor(data: IProcessBulkQuotesCallbackMessageData) {
         super({
             key: data.key,
-            content: data.partyResult,
+            content: data.content,
             timestamp: data.timestamp,
             headers: data.headers,
-            name: ProcessPartyInfoCallbackCmdEvt.name,
+            name: ProcessBulkQuotesCallbackMessage.name,
         });
     }
 
-    getBulkId() {
-        return this.getKey().split('_')[0];
-    }
-
-    getTransferId() {
-        return this.getKey().split('_')[1];
-    }
-
-    static CreateFromCommandEvent(message: CommandEvent): ProcessPartyInfoCallbackCmdEvt {
+    static CreateFromCommandEventMessage(message: CommandEventMessage): ProcessBulkQuotesCallbackMessage {
         if((message.getContent() === null || typeof message.getContent() !== 'object')) {
             throw new Error('Content is in unknown format');
         }
-        const data: IProcessPartyInfoCallbackCmdEvtData = {
+        const data: IProcessBulkQuotesCallbackMessageData = {
             key: message.getKey(),
-            partyResult: <SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse>message.getContent(),
+            content: message.getContent() as IProcessBulkQuotesCallbackMessageData['content'],
             timestamp: message.getTimeStamp(),
             headers: message.getHeaders(),
         };
-        return new ProcessPartyInfoCallbackCmdEvt(data);
+        return new ProcessBulkQuotesCallbackMessage(data);
+    }
+
+    get batchId(): string {
+        const content = this.getContent() as IProcessBulkQuotesCallbackMessageData['content'];
+        return content.batchId;
+    }
+
+    get bulkQuoteId(): string {
+        const content = this.getContent() as IProcessBulkQuotesCallbackMessageData['content'];
+        return content.bulkQuoteId;
+    }
+
+    get bulkQuotesResult(): SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkQuoteResponse {
+        const content = this.getContent() as IProcessBulkQuotesCallbackMessageData['content'];
+        return content.bulkQuotesResult;
     }
 }

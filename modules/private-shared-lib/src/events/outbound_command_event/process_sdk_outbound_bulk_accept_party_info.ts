@@ -18,52 +18,50 @@
  * Gates Foundation
  - Name Surname <name.surname@gatesfoundation.com>
  * Modusbox
- - Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>
+ - Vijay Kumar Guthi <vijaya.guthi@modusbox.com>
  --------------
  ******/
 
 'use strict';
 
-import { CommandEvent } from '../command_event';
+import { CommandEventMessage } from '../command_event_message';
 import { IMessageHeader } from '@mojaloop/platform-shared-lib-messaging-types-lib';
 import { SDKSchemeAdapter } from '@mojaloop/api-snippets';
+import { randomUUID } from 'crypto';
 
-export interface IProcessPartyInfoCallbackCmdEvtData {
-    key: string;
-    partyResult: SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse;
+export interface IProcessSDKOutboundBulkAcceptPartyInfoMessageData {
+    bulkId: string;
+    bulkTransactionContinuationAcceptParty: SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionContinuationAcceptParty;
     timestamp: number | null;
     headers: IMessageHeader[] | null;
 }
 
-export class ProcessPartyInfoCallbackCmdEvt extends CommandEvent {
-    constructor(data: IProcessPartyInfoCallbackCmdEvtData) {
+export class ProcessSDKOutboundBulkAcceptPartyInfoMessage extends CommandEventMessage {
+    constructor(data: IProcessSDKOutboundBulkAcceptPartyInfoMessageData) {
         super({
-            key: data.key,
-            content: data.partyResult,
+            key: data.bulkId,
+            content: data.bulkTransactionContinuationAcceptParty,
             timestamp: data.timestamp,
             headers: data.headers,
-            name: ProcessPartyInfoCallbackCmdEvt.name,
+            name: ProcessSDKOutboundBulkAcceptPartyInfoMessage.name,
         });
     }
 
-    getBulkId() {
-        return this.getKey().split('_')[0];
-    }
-
-    getTransferId() {
-        return this.getKey().split('_')[1];
-    }
-
-    static CreateFromCommandEvent(message: CommandEvent): ProcessPartyInfoCallbackCmdEvt {
+    static CreateFromCommandEventMessage(message: CommandEventMessage): ProcessSDKOutboundBulkAcceptPartyInfoMessage {
         if((message.getContent() === null || typeof message.getContent() !== 'object')) {
             throw new Error('Content is in unknown format');
         }
-        const data: IProcessPartyInfoCallbackCmdEvtData = {
-            key: message.getKey(),
-            partyResult: <SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse>message.getContent(),
+        const data: IProcessSDKOutboundBulkAcceptPartyInfoMessageData = {
+            bulkId: message.getKey(),
+            bulkTransactionContinuationAcceptParty: message.getContent() as SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionContinuationAcceptParty,
             timestamp: message.getTimeStamp(),
             headers: message.getHeaders(),
         };
-        return new ProcessPartyInfoCallbackCmdEvt(data);
+        return new ProcessSDKOutboundBulkAcceptPartyInfoMessage(data);
     }
+
+    getBulkTransactionContinuationAcceptParty(): SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionContinuationAcceptParty {
+        return this.getContent() as SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionContinuationAcceptParty;
+    }
+
 }

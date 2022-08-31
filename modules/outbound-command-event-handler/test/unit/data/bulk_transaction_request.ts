@@ -18,20 +18,61 @@
  * Gates Foundation
  - Name Surname <name.surname@gatesfoundation.com>
  * Modusbox
- - Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>
+ - Vijay Kumar Guthi <vijaya.guthi@modusbox.com>
  --------------
  ******/
 
-export * from './party_info_requested';
-export * from './sdk_outbound_bulk_request_received';
-export * from './sdk_outbound_bulk_party_info_requested';
-export * from './sdk_outbound_bulk_accept_party_info_requested';
-export * from './sdk_outbound_bulk_auto_accept_party_info_requested';
-export * from './party_info_callback_processed';
-export * from './sdk_outbound_bulk_accept_party_info_processed';
-export * from './bulk_quotes_requested';
-export * from './party_info_callback_received';
-export * from './sdk_outbound_bulk_accept_party_info_received_message';
-export * from './bulk_quotes_callback_received';
-export * from './bulk_quotes_callback_processed';
-export * from './sdk_outbound_bulk_quotes_request_processed';
+ 'use strict'
+
+import { SDKSchemeAdapter } from '@mojaloop/api-snippets';
+import { randomUUID } from "crypto";
+
+export const BULK_REQUEST: SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionRequest = {
+    bulkHomeTransactionID: "string",
+    bulkTransactionId: randomUUID(),
+    options: {
+      onlyValidateParty: true,
+      autoAcceptParty: {
+        enabled: false
+      },
+      autoAcceptQuote: {
+        enabled: true,
+      },
+      skipPartyLookup: true,
+      synchronous: true,
+      bulkExpiration: "2016-05-24T08:38:08.699-04:00"
+    },
+    from: {
+      partyIdInfo: {
+        partyIdType: "MSISDN",
+        partyIdentifier: "16135551212",
+        fspId: "string",
+      },
+    },
+    individualTransfers: [
+      {
+        homeTransactionId: randomUUID(),
+        to: {
+          partyIdInfo: {
+            partyIdType: "MSISDN",
+            partyIdentifier: "16135551212",
+          },
+        },
+        amountType: "SEND",
+        currency: "USD",
+        amount: "123.45",
+      },
+      {
+        homeTransactionId: randomUUID(),
+        to: {
+          partyIdInfo: {
+            partyIdType: "MSISDN",
+            partyIdentifier: "16135551212",
+          },
+        },
+        amountType: "SEND",
+        currency: "USD",
+        amount: "456.78",
+      }
+    ]
+  }

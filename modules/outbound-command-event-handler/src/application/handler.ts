@@ -43,6 +43,7 @@ import {
 import { IBulkTransactionEntityRepo, ICommandEventHandlerOptions } from '../types';
 
 import { BulkTransactionAgg } from '../domain';
+import { ICommandEventHandlerConfig } from 'src/shared/config';
 
 export interface IOutboundEventHandlerOptions {
     bulkTransactionEntityRepo: IBulkTransactionEntityRepo
@@ -65,7 +66,7 @@ export class OutboundEventHandler implements IRunHandler {
     }
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    async start(appConfig: any, logger: ILogger): Promise<void> {
+    async start(appConfig: ICommandEventHandlerConfig, logger: ILogger): Promise<void> {
         this._logger = logger;
         this._logger.info('start');
 
@@ -86,6 +87,7 @@ export class OutboundEventHandler implements IRunHandler {
         this._commandEventHandlerOptions = {
             bulkTransactionEntityRepo: this._bulkTransactionEntityStateRepo,
             domainProducer: this._domainProducer,
+            appConfig
         };
     }
 
@@ -98,31 +100,35 @@ export class OutboundEventHandler implements IRunHandler {
         this._logger.info(`${message.getName()}`);
         // TODO: Handle error validations here
         switch (message.getName()) {
-            case ProcessSDKOutboundBulkRequestCmdEvt.name: {
-                await BulkTransactionAgg.ProcessCommandEvent(
-                    ProcessSDKOutboundBulkRequestCmdEvt.CreateFromCommandEvent(message),
-                    this._commandEventHandlerOptions, this._logger,
+            case ProcessSDKOutboundBulkRequestMessage.name: {
+                BulkTransactionAgg.ProcessCommandEvent(
+                    ProcessSDKOutboundBulkRequestMessage.CreateFromCommandEventMessage(message),
+                    this._commandEventHandlerOptions,
+                    this._logger,
                 );
                 break;
             }
-            case ProcessSDKOutboundBulkPartyInfoRequestCmdEvt.name: {
-                await BulkTransactionAgg.ProcessCommandEvent(
-                    ProcessSDKOutboundBulkPartyInfoRequestCmdEvt.CreateFromCommandEvent(message),
-                    this._commandEventHandlerOptions, this._logger,
+            case ProcessSDKOutboundBulkPartyInfoRequestMessage.name: {
+                BulkTransactionAgg.ProcessCommandEvent(
+                    ProcessSDKOutboundBulkPartyInfoRequestMessage.CreateFromCommandEventMessage(message),
+                    this._commandEventHandlerOptions,
+                    this._logger,
                 );
                 break;
             }
-            case ProcessPartyInfoCallbackCmdEvt.name: {
-                await BulkTransactionAgg.ProcessCommandEvent(
-                    ProcessPartyInfoCallbackCmdEvt.CreateFromCommandEvent(message),
-                    this._commandEventHandlerOptions, this._logger,
+            case ProcessPartyInfoCallbackMessage.name: {
+                BulkTransactionAgg.ProcessCommandEvent(
+                    ProcessPartyInfoCallbackMessage.CreateFromCommandEventMessage(message),
+                    this._commandEventHandlerOptions,
+                    this._logger,
                 );
                 break;
             }
-            case ProcessSDKOutboundBulkPartyInfoRequestCompleteCmdEvt.name: {
-                await BulkTransactionAgg.ProcessCommandEvent(
-                    ProcessSDKOutboundBulkPartyInfoRequestCompleteCmdEvt.CreateFromCommandEvent(message),
-                    this._commandEventHandlerOptions, this._logger,
+            case ProcessSDKOutboundBulkPartyInfoRequestCompleteMessage.name: {
+                BulkTransactionAgg.ProcessCommandEvent(
+                    ProcessSDKOutboundBulkPartyInfoRequestCompleteMessage.CreateFromCommandEventMessage(message),
+                    this._commandEventHandlerOptions,
+                    this._logger,
                 );
                 break;
             }

@@ -29,9 +29,10 @@ import { CommandEvent, ProcessPartyInfoCallbackCmdEvt, PartyInfoCallbackProcesse
 import { BulkTransactionAgg } from '..';
 import { ICommandEventHandlerOptions } from '@module-types';
 import { IndividualTransferInternalState } from '../..';
+import { SDKSchemeAdapter } from '@mojaloop/api-snippets';
 
-export async function handleProcessPartyInfoCallbackCmdEvt(
-    message: CommandEvent,
+export async function handleProcessPartyInfoCallbackMessage(
+    message: CommandEventMessage,
     options: ICommandEventHandlerOptions,
     logger: ILogger,
 ): Promise<void> {
@@ -49,11 +50,11 @@ export async function handleProcessPartyInfoCallbackCmdEvt(
         const individualTransfer = await bulkTransactionAgg.getIndividualTransferById(
             processPartyInfoCallback.getTransferId(),
         );
-        const partyResult = <IPartyResult>processPartyInfoCallback.getContent();
-        if(partyResult.errorInformation) {
-            individualTransfer.setTransferState(IndividualTransferInternalState.DISCOVERY_FAILED);
-        } else {
+        const partyResult = processPartyInfoCallbackMessage.getContent() as SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse;
+        if(partyResult.currentState && partyResult.currentState === 'COMPLETED') {
             individualTransfer.setTransferState(IndividualTransferInternalState.DISCOVERY_SUCCESS);
+        } else {
+            individualTransfer.setTransferState(IndividualTransferInternalState.DISCOVERY_FAILED);
         }
         individualTransfer.setPartyResponse(partyResult);
 

@@ -42,12 +42,16 @@ export enum BulkTransactionInternalState {
     DISCOVERY_ACCEPTANCE_PENDING = 'DISCOVERY_ACCEPTANCE_PENDING',
     AGREEMENT_PROCESSING = 'AGREEMENT_PROCESSING',
     TRANSFER_PROCESSING = 'TRANSFER_PROCESSING',
+    DISCOVERY_ACCEPTANCE_COMPLETED = 'DISCOVERY_ACCEPTANCE_COMPLETED',
+    AGREEMENT_COMPLETED = 'AGREEMENT_COMPLETED',
+    AGREEMENT_ACCEPTANCE_PENDING = 'AGREEMENT_ACCEPTANCE_PENDING'
 }
 
 export interface BulkTransactionState extends BaseEntityState {
     bulkTransactionId: string;
-    bulkHomeTransactionID: string | null;
+    bulkHomeTransactionID: string;
     options: SDKSchemeAdapter.Outbound.V2_0_0.Types.bulkTransactionOptions;
+    from: SDKSchemeAdapter.Outbound.V2_0_0.Types.Party;
     extensions: SDKSchemeAdapter.Outbound.V2_0_0.Types.ExtensionList | undefined;
     state: BulkTransactionInternalState;
 }
@@ -58,8 +62,16 @@ export class BulkTransactionEntity extends BaseEntity<BulkTransactionState> {
         return this._state.id;
     }
 
-    get bulkHomeTransactionID(): string | null {
+    get bulkHomeTransactionID(): string {
         return this._state.bulkHomeTransactionID;
+    }
+
+    get from(): SDKSchemeAdapter.Outbound.V2_0_0.Types.Party {
+        return this._state.from;
+    }
+
+    get extensions(): SDKSchemeAdapter.Outbound.V2_0_0.Types.ExtensionList | undefined {
+        return this._state.extensions;
     }
 
     static CreateFromRequest(
@@ -72,6 +84,7 @@ export class BulkTransactionEntity extends BaseEntity<BulkTransactionState> {
             bulkTransactionId,
             bulkHomeTransactionID: request?.bulkHomeTransactionID,
             options: request?.options,
+            from: request?.from,
             extensions: request?.extensions,
             state: BulkTransactionInternalState.RECEIVED,
             created_at: Date.now(),

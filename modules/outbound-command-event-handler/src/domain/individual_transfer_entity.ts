@@ -30,7 +30,7 @@ import {
     SchemaValidationError,
     IPartyResult,
 } from '@mojaloop/sdk-scheme-adapter-private-shared-lib';
-import { SDKSchemeAdapter, v1_1 as FSPIOP } from '@mojaloop/api-snippets';
+import { SDKSchemeAdapter } from '@mojaloop/api-snippets';
 import { randomUUID } from 'crypto';
 import Ajv from 'ajv';
 const ajv = new Ajv({
@@ -44,7 +44,11 @@ export enum IndividualTransferInternalState {
     DISCOVERY_PROCESSING = 'DISCOVERY_PROCESSING',
     DISCOVERY_FAILED = 'DISCOVERY_FAILED',
     DISCOVERY_SUCCESS = 'DISCOVERY_SUCCESS',
+    DISCOVERY_ACCEPTED = 'DISCOVERY_ACCEPTED',
+    DISCOVERY_REJECTED = 'DISCOVERY_REJECTED',
     AGREEMENT_PROCESSING = 'AGREEMENT_PROCESSING',
+    AGREEMENT_SUCCESS = 'AGREEMENT_SUCCESS',
+    AGREEMENT_FAILED = 'AGREEMENT_FAILED',
     TRANSFER_PROCESSING = 'TRANSFER_PROCESSING',
 }
 
@@ -55,9 +59,11 @@ export interface IndividualTransferState extends BaseEntityState {
     batchId?: string;
     // TODO: FSPIOP in api-snippets should export the `PartiesByTypeAndID` schema and refer that in the following line
     partyRequest?: any;
-    partyResponse?: IPartyResult;
+    partyResponse?: SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse
     acceptParty?: boolean;
     acceptQuote?: boolean;
+    quoteResponse?: SDKSchemeAdapter.Outbound.V2_0_0.Types.individualQuoteResult;
+    transferResponse?: SDKSchemeAdapter.Outbound.V2_0_0.Types.individualTransferResult;
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     lastError?: any; // TODO: Define a format for this
 }
@@ -70,6 +76,15 @@ export class IndividualTransferEntity extends BaseEntity<IndividualTransferState
 
     get request(): SDKSchemeAdapter.Outbound.V2_0_0.Types.individualTransaction {
         return this._state.request;
+    }
+    get partyResponse(): SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse | undefined {
+        return this._state.partyResponse;
+    }
+    get quoteResponse(): SDKSchemeAdapter.Outbound.V2_0_0.Types.individualQuoteResult | undefined {
+        return this._state.quoteResponse;
+    }
+    get transferResponse(): SDKSchemeAdapter.Outbound.V2_0_0.Types.individualTransferResult | undefined {
+        return this._state.transferResponse;
     }
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -105,8 +120,20 @@ export class IndividualTransferEntity extends BaseEntity<IndividualTransferState
         this._state.partyRequest = request;
     }
 
-    setPartyResponse(request: IPartyResult) {
-        this._state.partyResponse = request;
+    setPartyResponse(response: SDKSchemeAdapter.Outbound.V2_0_0.Types.partiesByIdResponse) {
+        this._state.partyResponse = response;
+    }
+
+    setQuoteResponse(response: SDKSchemeAdapter.Outbound.V2_0_0.Types.individualQuoteResult) {
+        this._state.quoteResponse = response;
+    }
+
+    setTransferResponse(response: SDKSchemeAdapter.Outbound.V2_0_0.Types.individualTransferResult) {
+        this._state.transferResponse = response;
+    }
+
+    setAcceptParty(acceptParty: boolean) {
+        this._state.acceptParty = acceptParty
     }
 
     // get payeeResolved(): boolean {
@@ -116,6 +143,9 @@ export class IndividualTransferEntity extends BaseEntity<IndividualTransferState
 
     get transferState() {
         return this._state.state;
+    }
+    get toFspId(): string | undefined {
+        return this._state.partyResponse?.party?.body?.partyIdInfo?.fspId;
     }
 
     /* eslint-disable-next-line @typescript-eslint/no-useless-constructor */
